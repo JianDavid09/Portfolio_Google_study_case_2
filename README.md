@@ -7,4 +7,4 @@ This report was created using R markdown as an assignment for the Google Data An
 ## Author
 **Julián David Candela**
 * [LinkedIn](https://sites.google.com/view/juliandavidcandela/about-me)
-* [Portfolio web](https://sites.google.com/view/juliandavidcandela/about-me)
+* [Portfolio web](https://sites.google.com/view/juliandavidcandela/what-i-do/portfolio)
