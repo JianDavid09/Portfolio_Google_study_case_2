@@ -1,4 +1,4 @@
-# **Google Data Analytics Professional Certificate study case Report**
+# **Google Data Analytics Professional Certificate study case 2 Report**
 ## Description
 This report was created using R markdown as an assignment for the Google Data Analytics Professional Certificate.
 
