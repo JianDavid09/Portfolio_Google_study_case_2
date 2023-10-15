@@ -1,0 +1,179 @@
+---
+title: "Google Data Analytics Professional Certificate study case report"
+author: "Julián David Candela"
+date: "2023-08-31"
+output:
+  html_document: default
+  pdf_document: default
+---
+This report was created as an assignment for the Google Data Analytics Professional Certificate.
+
+**Hypothetical case:** The Bellabeat company believes that analyzing physical activity data from smart devices could unlock new business opportunities for the company. I've been asked analyze the [FitBit Fitness Tracker Data set](https://www.kaggle.com/datasets/arashnic/fitbit) from Kaggle to learn how users are using their smart devices and present high-level recommendations for Bellabeat's marketing strategy.
+
+# **Preliminars**
+
+## Cleaning:
+Google sheets was used to clean and format the data before loading it to R. Most of the process was to make sure that all the columns have a suitable format for the analysis process that we want to carry out.
+
+## Installing and loading packages and libraries:
+
+```{r message=FALSE, warning=FALSE}
+install.packages('tidyverse')
+library(tidyverse)
+```
+
+
+## Loading the data:
+```{r message=FALSE, warning=FALSE}
+daily_activity <- read.csv("dailyActivity_merged.csv")
+sleep_day <- read.csv("cleaned.csv")
+weight <- read.csv("weightLogInfo_merged.csv")
+calories<- read.csv("dailyCalories_merged.csv")
+```
+
+
+
+# **Basic Information about TotalMinutesAsleep and TotalTimeInBed**
+
+We calculate the average of the variables TotalTimeInBed and TotalMinutesAsleep as an estimator of the amount of time a user is in bed and sleeps. We also calculate the minimum and maximum of these variables.
+```{r}
+sleep_day %>%   drop_na() %>%  summarize(average_time_bed=mean(TotalTimeInBed), min_time_bed=min(TotalTimeInBed), max_time_bed=max(TotalTimeInBed))
+
+sleep_day  %>%  drop_na() %>%  summarize(average_time_asleep=mean(TotalMinutesAsleep), min_time_asleep=min(TotalMinutesAsleep), max_time_asleep=max(TotalMinutesAsleep))
+
+```
+
+
+
+
+# **Comparing the variables TotalMinutesAsleep vs TotalTimeInBed**
+We want to compare these two  variables to find any possible relation between them. 
+
+## Plotting:
+For that, we  begin plotting the variables in order to study the behavior of the data. We also add a trend line. 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=sleep_day, aes(x=TotalMinutesAsleep, y=TotalTimeInBed)) +geom_smooth()+ geom_point()
+```
+
+## Correlation of the variables TotalMinutesAsleep and TotalTimeInBed:
+The plotting of the variables TotalMinutesAsleep vs TotalTimeInBed suggests they are correlated, we verify this by calculating the correlation coefficient. 
+```{r}
+cor(x=sleep_day$TotalMinutesAsleep, y=sleep_day$TotalTimeInBed)
+
+```
+
+## Diference betwwen TotalMinutesAsleep and TotalTimeInBed:
+Now, we want compare the two variables TotalMinutesAsleep and TotalTimeInBed in order to to obtain an estimate of their difference. First we calculate the average difference of these variables 
+
+```{r}
+sleep_day %>% drop_na() %>%  summarize(average_difference_time=mean(TotalMinutesDif)) 
+```
+
+also, we decide to plot the average difference by user and add two lines to the graphic  allow the reader to compare with two different values the  average_difference_time and the value 50 minutes. 
+
+```{r}
+sleep_day  %>% group_by(Id) %>% drop_na() %>%  summarize(average_difference_time=mean(TotalMinutesDif)) %>%  ggplot(aes(x=Id, y=average_difference_time)) + geom_point()+ geom_hline(yintercept = 50, color="blue")+ geom_hline(yintercept = 30, color="green")+ annotate("text", x=2500000000,y=60, label="50 minutes", color="blue")+ annotate("text", x=2500000000,y=39.17, label="average_difference_time", color="green")
+```
+
+
+# **Analysis by user**
+Now, we want to make some analysis by user in order to have a better understanding of the behavior of the data.
+
+## Basic inforation TotalMinutesAsleep and otalTimeInBed by user: 
+```{r}
+sleep_day %>% group_by(Id) %>% drop_na() %>%  summarize(average_time_bed=mean(TotalTimeInBed),min_time_bed=min(TotalTimeInBed), max_time_bed=max(TotalTimeInBed) )
+
+sleep_day  %>% group_by(Id) %>% drop_na() %>%  summarize(mean_time_asleep=mean(TotalMinutesAsleep), min_time_bed=min(TotalMinutesAsleep), max_time_bed=max(TotalMinutesAsleep))
+
+```
+
+## Comparing TotalMinutesAsleep vs the recomended amount of sleep
+Also, we want to compare how often users sleep an amount of hours below the recommended amount of sleep.
+```{r}
+ggplot(data=sleep_day, aes(x=Id, y=TotalMinutesAsleep)) + geom_point()+  geom_hline(yintercept = 420, color="red")+ geom_hline(yintercept = 480, color="blue")+ annotate("text", x=1000000,y=450, label="7 hours", color="red")+ annotate("text", x=10000000,y=500, label="8 hours", color="blue")
+
+```
+
+# **Analysis by weekday**
+
+We are also interested to know if the weekday is related to the amount of hours that the user rests. 
+
+
+## Basic inforation TotalMinutesAsleep and otalTimeInBed by weekday:
+```{r}
+sleep_day %>% group_by(DayWeek) %>% drop_na() %>%  summarize(average_time_bed=mean(TotalTimeInBed),min_time_bed=min(TotalTimeInBed), max_time_bed=max(TotalTimeInBed) )
+
+sleep_day  %>% group_by(DayWeek) %>% drop_na() %>%  summarize(mean_time_asleep=mean(TotalMinutesAsleep), min_time_asleep=min(TotalMinutesAsleep), max_time_asleep=max(TotalMinutesAsleep))
+```
+
+We also add a graphic to have a better understanding of the of the average_time_asleep behavior per day.
+
+```{r}
+sleep_day  %>% group_by(DayWeek) %>% drop_na() %>%  summarize(average_time_asleep=mean(TotalMinutesAsleep)) %>% 
+arrange(DayWeek)  %>% 
+ggplot(aes(x=DayWeek, y=average_time_asleep)) + geom_col(position = "dodge")
+
+```
+
+Furthermore, we want to compare the Total time asleep vs the recommended amount of sleep by weekday to identify possible trends. 
+
+```{r}
+ggplot(data=sleep_day, aes(x=Id, y=TotalMinutesAsleep)) + geom_point()+  geom_hline(yintercept = 420, color="red")+ geom_hline(yintercept = 480, color="blue")+ annotate("text", x=1000000,y=450, label="7 hours", color="red")+ annotate("text", x=10000000,y=500, label="8 hours", color="blue")+facet_wrap(~DayWeek)
+```
+
+now, we classify the data provided to make a comparison of sleep hours by weekday
+```{r}
+ggplot(data=sleep_day, aes(x=DayWeek, y=TotalMinutesAsleep)) + geom_point()+  geom_hline(yintercept = 420, color="red")+ geom_hline(yintercept = 480, color="blue")+ annotate("text", x=1,y=450, label="7 hours", color="red")+ annotate("text", x=1,y=500, label="8 hours", color="blue")
+```
+
+
+
+# Merging 2 data sets together:
+In order to deduce other possible trends, we merge the two data sets "sleep_day" and  "daily_activity".
+```{r}
+combined_data <- merge(sleep_day, daily_activity, by="Id")
+```
+
+## Plotting the merged data:
+now, we plot the variables TotalSteps vs TotalMinutesAsleep
+```{r}
+ggplot(data=combined_data, aes(x=TotalSteps, y=TotalMinutesAsleep))+ geom_point()
+```
+
+## Correlation:
+We calculate the correlation between the variables **TotalSteps** vs **TotalMinutesAsleep**
+```{r}
+cor(x=combined_data$TotalSteps, y=combined_data$TotalMinutesAsleep)
+```
+
+
+# Results
+
+## Summary:
+*  The average TotalMinutesAsleep is 419.46 min, that is approximately 7 hours. However the graphics show that most user's sleep times are below the healthy recommended amount of time sleep.
+
+* The correlation coefficient r=0.93 guarantee that the variables TotalTimeInBed and TotalMinutesAsleep are highly correlated. 
+
+* The average Total Time Difference between the variables TotalTimeInBed and TotalMinutesAsleep is 39.17 minutes. The graphics showed that this Difference is below average for most of the users. 
+
+* In average, the day in which the least number of hours of sleep is recorded is Thursday.
+
+* In average, the day in which the most number of hours of sleep is recorded is Sunday.
+
+* The correlation coefficient r=-0.09 guarantee that the variables TotalSteps and TotalMinutesAsleep are not correlated. 
+
+## Observations:
+
+* Although, in average, the amount of total time for a user to be asleep is reasonable good, making the analysis by user we found out that actually some of the users don't sleep enough.
+
+* For most users, the average Difference between the variables TotalTimeInBed and TotalMinutesAsleep is below 39.17 minutes. Thus, approximately, we expect a user to sleep the same amount of time that they are in bed except for 40 minutes.
+
+* Despite the fact that, on average, Sundays and Thursdays are the days when users have more and fewer hours of sleep, respectively; When examining the plotting made, we conclude that there is not a clear tendency for users to sleep better one day than another.
+
+* The data suggest that the variables TotalSteps and TotalMinutesAsleep are not related. 
+
+
+
+## Recommendations:
+* The data suggests that almost all users sleeps most of the time that they are in bed; however, the data also shows that in many cases this last amount of time is not enough for a user to rest well. We recommend to add an alert to the device that suggest the user to go to bed early and that it indicates how much time will the user sleep if going to bed right now, based on his usual time to wake up. 
+* We suggest to recollect more data and make a new analysis in order to deduce new trends. 
